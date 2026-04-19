@@ -4,7 +4,6 @@ using Android.Content.PM;
 using Android.OS;
 using AndroidX.Core.App;
 using MqttPhone.Services;
-using CommunityToolkit.Mvvm.Messaging;
 
 namespace MqttPhone.Platforms.Android
 {
@@ -86,7 +85,7 @@ namespace MqttPhone.Platforms.Android
                 {
 
                     Log("Connecting...");
-                    string connection = _mqttService.ConnectAsync();
+                    string connection = _mqttService.Connect();
                     Log($"Connected to {connection}, now subscribing...");
                 }
                 catch (Exception ex)
@@ -100,18 +99,23 @@ namespace MqttPhone.Platforms.Android
                 // Subscribe for each configured topic template
                 if (_config.TopicTemplateList != null && _config.TopicTemplateList.Count > 0)
                 {
-                    foreach (var template in _config.TopicTemplateList)
+                    // Run the subscription process in a background task to avoid blocking the main thread, especially if there are multiple templates or if the subscribe operation takes time
+                    // MQTT ends up in a deadlock otherwise, because the subscribe call waits for the MQTT client to be connected (send SUBACK), but the MQTT client connection process is waiting for the main thread to be free to complete the connection (since we're running in a foreground service, we're likely on the main thread)
+                    _ = Task.Run(async () =>
                     {
-                        try
+                        foreach (var template in _config.TopicTemplateList)
                         {
-                            var topic = _mqttService.SubscribeConfiguredAsync(template).Result;
-                            Log($"Subscribed to: {topic}");
+                            try
+                            {
+                                var topic = await _mqttService.SubscribeConfiguredAsync(template);
+                                Log($"Subscribed to: {topic}");
+                            }
+                            catch (Exception ex)
+                            {
+                                Log($"Subscribe failed for template '{template}': {ex.Message}");
+                            }
                         }
-                        catch (Exception ex)
-                        {
-                            Log($"Subscribe failed for template '{template}': {ex.Message}");
-                        }
-                    }
+                    });
                 }
                 else
                 {

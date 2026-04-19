@@ -107,7 +107,7 @@ public class MqttService
         BuildOptions();
     }
 
-    public string ConnectAsync()
+    public string Connect()
     {
         string connectionString = "(no MQTT connection configured)";
 
@@ -155,8 +155,12 @@ public class MqttService
 
         var topic = string.Format(template, phone.Trim('+'));
         var filter = new MqttTopicFilterBuilder().WithTopic(topic).Build();
-        try { 
-             await _client.SubscribeAsync(filter);
+        try {
+            // use a cancellation token to avoid hanging indefinitely if subscribe fails
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+            // Attempt to subscribe to the topic. If the subscription fails (e.g. due to network issues or broker errors), we avoid crashing the app by cancelling the subscribe attempt after a timeout.
+            await _client.SubscribeAsync(filter, cts.Token);
         }
         catch (Exception ex)
         {
@@ -196,8 +200,12 @@ public class MqttService
         BuildOptions();
     }
 
+    private static void Log(string message) => File.AppendAllText(path: Path.Combine(FileSystem.AppDataDirectory, "mqtt.log"),
+                                                                  $"{DateTime.Now:HH:mm:ss} {message}\n");
+
     private async Task HandleMessage(MqttApplicationMessageReceivedEventArgs e)
     {
+        Log("Message received");
         try
         {
             var topic = e.ApplicationMessage?.Topic ?? string.Empty;
@@ -205,9 +213,14 @@ public class MqttService
                 ? string.Empty
                 : Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
 
+            Log($"Topic: {topic}");
+            if (!String.IsNullOrEmpty(payload)) Log($"Payload: {payload}");
+
             string? msisdn = null;
             if (_phoneNumberProvider != null)
                 msisdn = await _phoneNumberProvider.GetSim1PhoneNumberAsync();
+            msisdn = msisdn?.Trim('+');  //MQTT Topics cannot contain pluses, the MSISDN always does
+            Log($"MSISDN: {msisdn}");
 
             if (String.IsNullOrEmpty(msisdn)) return;
 

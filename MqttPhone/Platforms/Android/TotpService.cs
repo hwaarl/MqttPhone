@@ -11,14 +11,21 @@ namespace MqttPhone.Platforms.Android
         {
             _phoneNumberProvider = phoneNumberProvider;
         }
+        private static void Log(string message) => File.AppendAllText(path: Path.Combine(FileSystem.AppDataDirectory, "mqtt.log"),
+                                                                  $"{DateTime.Now:HH:mm:ss} {message}\n");
 
         public static async Task<string> HandleMessage(string msisdn, string topic, string messageJson)
         {
+            Log("Handling obtainTOTP message");
             var parts = topic.Split('/');
-            if (parts == null) return null;
-            if (parts.Length != 3) return null;
-            if (!parts[0].Equals("mqttphone", StringComparison.OrdinalIgnoreCase)) return null;
-            if (msisdn != null && !msisdn.Equals(parts[1], StringComparison.OrdinalIgnoreCase)) return null; // security requirement: only process messages that contain the MSISDN in the topic
+            if (parts == null) return "Topic is null";
+            if (!parts.Contains("mqttPhone", StringComparer.OrdinalIgnoreCase)) return "Invalid topic";
+            if (string.IsNullOrEmpty(msisdn) || !parts.Contains(msisdn, StringComparer.OrdinalIgnoreCase))
+            {
+                // security requirement: only process messages that contain the MSISDN in the topic
+                Log($"Given MSISDN {msisdn} doesnt match topic {topic}");
+                return $"Given MSISDN {msisdn} doesnt match topic {topic}";
+            }
 
             try
             {
