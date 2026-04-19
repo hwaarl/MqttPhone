@@ -1,5 +1,7 @@
 ﻿using MqttPhone.Services;
 using System.Text.Json;
+using GoogleGson;
+
 
 
 #if ANDROID
@@ -40,6 +42,8 @@ namespace MqttPhone
 #if ANDROID
             var context = Android.App.Application.Context;
             var intent = new Intent(context, typeof(MqttForegroundService));
+            intent.SetAction(MqttForegroundService.ActionConnect);
+            Android.App.Application.Context.StartForegroundService(intent);
             context.StopService(intent);
 #endif
         }
@@ -143,10 +147,19 @@ namespace MqttPhone
             var json = JsonSerializer.Serialize(_config);
 
 #if ANDROID
+            // Create intent to start the foreground service with the MQTT config as an extra
             Android.Content.Intent intent = new Android.Content.Intent(Android.App.Application.Context, typeof(MqttForegroundService));
             intent.SetAction(MqttForegroundService.ActionConnect);
             intent.PutExtra(MqttForegroundService.ExtraConfig, json);
+
+            // Send intent to start the service
             Android.App.Application.Context.StartForegroundService(intent);
+            Task.Delay(500).Wait(); // wait a bit for the service to start and log
+
+            // After connecting, we can also send a subscribe action to subscribe to topics based on the new config
+            intent.SetAction(MqttForegroundService.ActionSubscribe);
+            Android.App.Application.Context.StartForegroundService(intent);
+
 #endif
         }
 

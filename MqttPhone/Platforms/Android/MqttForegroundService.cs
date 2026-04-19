@@ -14,6 +14,8 @@ namespace MqttPhone.Platforms.Android
     {
         public const string ActionConnect = "MQTT_CONNECT";
         public const string ActionUpdateConfig = "MQTT_UPDATE_CONFIG";
+        public const string ActionDisconnect = "MQTT_DISCONNECT";
+        public const string ActionSubscribe = "MQTT_SUBSCRIBE";
         public const string ExtraConfig = "config";
 
         private string NOTIFICATION_CHANNEL_ID = "1000";
@@ -86,31 +88,47 @@ namespace MqttPhone.Platforms.Android
                     Log("Connecting...");
                     string connection = _mqttService.ConnectAsync();
                     Log($"Connected to {connection}, now subscribing...");
-
-                    // Subscribe for each configured topic template
-                    if (_config.TopicTemplateList != null && _config.TopicTemplateList.Count > 0)
-                    {
-                        foreach (var template in _config.TopicTemplateList)
-                        {
-                            try
-                            { 
-                                var topic = _mqttService.SubscribeConfiguredAsync(template).Result;
-                                Log($"Subscribed to: {topic}");
-                            }
-                            catch (Exception ex)
-                            {
-                                Log($"Subscribe failed for template '{template}': {ex.Message}");
-                            }
-                        }
-                    }
-                    else
-                    {
-                        Log("No topic templates configured to subscribe to.");
-                    }
                 }
                 catch (Exception ex)
                 {
                     Log($"Connect failed: {ex.Message}");
+                }
+            }
+
+            if (intent != null && intent.Action.Equals(ActionSubscribe))
+            {
+                // Subscribe for each configured topic template
+                if (_config.TopicTemplateList != null && _config.TopicTemplateList.Count > 0)
+                {
+                    foreach (var template in _config.TopicTemplateList)
+                    {
+                        try
+                        {
+                            var topic = _mqttService.SubscribeConfiguredAsync(template).Result;
+                            Log($"Subscribed to: {topic}");
+                        }
+                        catch (Exception ex)
+                        {
+                            Log($"Subscribe failed for template '{template}': {ex.Message}");
+                        }
+                    }
+                }
+                else
+                {
+                    Log("No topic templates configured to subscribe to.");
+                }
+            }
+
+            if (intent != null && intent.Action.Equals(ActionDisconnect))
+            {
+                try
+                {
+                    _mqttService.DisconnectAsync().Wait();
+                    Log("Disconnected");
+                }
+                catch (Exception ex)
+                {
+                    Log($"Disconnect failed: {ex.Message}");
                 }
             }
 
