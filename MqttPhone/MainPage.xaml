@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MqttPhone.MainPage">
+
+    <ScrollView>
+        <VerticalStackLayout
+            Padding="20"
+            Spacing="12">
+
+            <Label Text="MQTT Configuration" FontAttributes="Bold" />
+
+            <Entry x:Name="ServerEntry" Placeholder="Server" />
+            <Entry x:Name="PortEntry" Placeholder="Port" Keyboard="Numeric" />
+            <Entry x:Name="UsernameEntry" Placeholder="Username" />
+            <Entry x:Name="PasswordEntry" Placeholder="Password" IsPassword="True" />
+
+            <HorizontalStackLayout Spacing="10">
+                <CheckBox x:Name="TlsCheck" />
+                <Label Text="Use TLS" VerticalOptions="Center" />
+            </HorizontalStackLayout>
+
+            <HorizontalStackLayout Spacing="10">
+                <CheckBox x:Name="CertValidateCheck" />
+                <Label Text="Validate Certificate" VerticalOptions="Center" />
+            </HorizontalStackLayout>
+
+            <Button x:Name="SaveBtn" Text="Save" Clicked="OnSaveClicked" />
+            <Button x:Name="ConnectBtn" Text="Connect" Clicked="OnConnectClicked" />
+
+            <Label Text="Log" FontAttributes="Bold" />
+            <Editor x:Name="LogEditor" HeightRequest="200" IsReadOnly="True" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>
