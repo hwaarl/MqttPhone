@@ -101,9 +101,9 @@ namespace MqttPhone.Platforms.Android
                 {
                     // Run the subscription process in a background task to avoid blocking the main thread, especially if there are multiple templates or if the subscribe operation takes time
                     // MQTT ends up in a deadlock otherwise, because the subscribe call waits for the MQTT client to be connected (send SUBACK), but the MQTT client connection process is waiting for the main thread to be free to complete the connection (since we're running in a foreground service, we're likely on the main thread)
-                    _ = Task.Run(async () =>
+                    foreach (var template in _config.TopicTemplateList)
                     {
-                        foreach (var template in _config.TopicTemplateList)
+                        _ = Task.Run(async () =>
                         {
                             try
                             {
@@ -114,8 +114,8 @@ namespace MqttPhone.Platforms.Android
                             {
                                 Log($"Subscribe failed for template '{template}': {ex.Message}");
                             }
-                        }
-                    });
+                        });
+                    }
                 }
                 else
                 {

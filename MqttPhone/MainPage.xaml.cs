@@ -1,5 +1,7 @@
 ﻿using MqttPhone.Services;
 using System.Text.Json;
+using Microsoft.Maui.Platform;
+
 
 
 
@@ -165,9 +167,20 @@ namespace MqttPhone
         void Log(string text)
         {
             MainThread.BeginInvokeOnMainThread(() => {
-                LogEditor.Text = DateTime.Now.ToString("HH:mm:ss") + " - " + text + "\n" + LogEditor.Text;
+                LogEditor.Text = LogEditor.Text + text + "\n";
             });
         }
 
+        // Scroll to the end of the log after new text is added. We add a slight delay to ensure the UI has updated with the new text before scrolling.
+        private async void OnEditorTextChanged(object sender, TextChangedEventArgs e)
+        {
+            await Task.Delay(50);
+
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                await MainScrollView.ScrollToAsync(LogEditor, ScrollToPosition.End, false);
+
+            });
+        }
     }
 }

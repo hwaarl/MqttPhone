@@ -29,7 +29,9 @@
             <Button x:Name="ConnectBtn" Text="Connect" Clicked="OnConnectClicked" />
 
             <Label Text="Log" FontAttributes="Bold" />
-            <Editor x:Name="LogEditor" HeightRequest="200" IsReadOnly="True" />
+            <ScrollView x:Name="MainScrollView" VerticalScrollBarVisibility="Always" HeightRequest="200">
+                <Editor x:Name="LogEditor" IsReadOnly="True" TextChanged="OnEditorTextChanged" AutoSize="TextChanges" />
+            </ScrollView>
 
         </VerticalStackLayout>
     </ScrollView>

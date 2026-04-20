@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<resources>
+	<!-- "MainTheme" ist der Standardname, den MAUI erwartet -->
+	<style name="Maui.SplashTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+		<!-- Optionale Farben, falls Sie diese anpassen möchten -->
+		<item name="android:windowTranslucentStatus">true</item>
+		<item name="android:editTextBackground">@android:color/transparent</item>
+	</style>
+</resources>
