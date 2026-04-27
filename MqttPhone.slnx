@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="MqttPhone/mqttPhone.csproj">
-    <Deploy Solution="Debug|*" />
+    <Deploy />
   </Project>
+  <Project Path="MqttWindows/MqttWindows.csproj" />
 </Solution>

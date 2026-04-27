@@ -10,8 +10,9 @@
 *.userosscache
 *.sln.docstates
 *.7z
-*.bat
 *.txt
+doc/
+DeploymentPackage/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

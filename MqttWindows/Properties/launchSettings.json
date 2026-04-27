@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "MqttWindows": {
+      "commandName": "Project"
+    },
+    "MqttWindows +41791234567 totp": {
+      "commandName": "Project",
+      "commandLineArgs": "+41791234567 totp"
+    }
+  }
+}
