@@ -7,7 +7,7 @@ echo ===========================================================================
 echo Building MqttPhone...
 
 cd MqttPhone
-dotnet publish --configuration Release --runtime android-x64 --framework net10.0-android -p:PackageFormat=Apk
+dotnet publish --configuration Release --runtime android-arm64 --framework net10.0-android -p:PackageFormat=Apk
 for /f "delims=" %%i in ('dir /s /b *-Signed.apk*') do copy "%%i" ..\DeploymentPackage\APK\
 cd..
 
