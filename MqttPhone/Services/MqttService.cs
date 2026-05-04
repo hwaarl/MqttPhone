@@ -205,7 +205,6 @@ public class MqttService
 
     private async Task HandleMessage(MqttApplicationMessageReceivedEventArgs e)
     {
-        Log("Message received");
         try
         {
             var topic = e.ApplicationMessage?.Topic ?? string.Empty;
@@ -213,14 +212,12 @@ public class MqttService
                 ? string.Empty
                 : Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
 
-            Log($"Topic: {topic}");
-            if (!String.IsNullOrEmpty(payload)) Log($"Payload: {payload}");
-
             string? msisdn = null;
             if (_phoneNumberProvider != null)
                 msisdn = await _phoneNumberProvider.GetSim1PhoneNumberAsync();
             msisdn = msisdn?.Trim('+');  //MQTT Topics cannot contain pluses, the MSISDN always does
-            Log($"MSISDN: {msisdn}");
+
+            Log($"Received: {topic}, payload {(string.IsNullOrEmpty(payload) ? "(empty)" : payload)}, MSISDN: {msisdn}");
 
             if (String.IsNullOrEmpty(msisdn)) return;
 
@@ -232,11 +229,19 @@ public class MqttService
             if (topic.EndsWith("/obtainTOTP", StringComparison.OrdinalIgnoreCase))
             {
                 // Obtain TOTP from the latest received SMS
-                string totp = await TotpService.HandleMessage(msisdn, topic, payload);
-                if (String.IsNullOrEmpty(totp)) return;
+                string? totp = await TotpService.HandleMessage(msisdn, topic, payload);
+
+                if (String.IsNullOrEmpty(totp) && Clipboard.Default.HasText) {
+                    totp = await Clipboard.Default.GetTextAsync();
+                    if (!String.IsNullOrEmpty(totp))
+                        totp = await TotpService.ExtractLongestDigitSequence(totp);
+                }
+                if (String.IsNullOrEmpty(totp))
+                    Log("No SMS received since App start, or SMS has no TOTP. Also clipboard contains no TOTP");
 
                 // Publish the TOTP back to a return topic
                 var returnTopic = $"/mqttPhone/{msisdn.Trim('+')}/returnTOTP";
+                Log($"Sending: {returnTopic}, payload '{(string.IsNullOrEmpty(totp) ? "(empty)" : totp)}'");
                 await PublishAsync(returnTopic, totp);
             }
 #endif

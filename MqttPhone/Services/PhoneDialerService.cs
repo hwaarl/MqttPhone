@@ -13,7 +13,6 @@ public static class PhoneDialerService
     // Topic template: mqttphone/{msisdn}/openPhoneNumber
     public static void HandleMessage(string msisdn, string topic, string messageJson)
     {
-        Log("Handling openPhoneNumber message");
         var parts = topic.Split('/');
         if (parts == null) return;
         if (!parts.Contains("mqttPhone", StringComparer.OrdinalIgnoreCase)) return;
@@ -32,9 +31,12 @@ public static class PhoneDialerService
                 if (!string.IsNullOrEmpty(number) && PhoneDialer.IsSupported)
                 {
                     PhoneDialer.Open(number);
+                    Log("OK");
                 }
             }
         }
-        catch { }
+        catch (Exception e) {
+            Log($"NOK: {e.Message}");
+        }
     }
 }

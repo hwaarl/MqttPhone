@@ -14,24 +14,24 @@ namespace MqttPhone.Platforms.Android
         private static void Log(string message) => File.AppendAllText(path: Path.Combine(FileSystem.AppDataDirectory, "mqtt.log"),
                                                                   $"{DateTime.Now:HH:mm:ss} {message}\n");
 
-        public static async Task<string> HandleMessage(string msisdn, string topic, string messageJson)
+        public static async Task<string?> HandleMessage(string msisdn, string topic, string messageJson)
         {
-            Log("Handling obtainTOTP message");
+            //Log("Handling obtainTOTP message");
             var parts = topic.Split('/');
-            if (parts == null) return "Topic is null";
-            if (!parts.Contains("mqttPhone", StringComparer.OrdinalIgnoreCase)) return "Invalid topic";
+            if (parts == null) { Log("Topic is null"); return null; }
+            if (!parts.Contains("mqttPhone", StringComparer.OrdinalIgnoreCase)) { Log("Invalid topic"); return null; }
             if (string.IsNullOrEmpty(msisdn) || !parts.Contains(msisdn, StringComparer.OrdinalIgnoreCase))
             {
                 // security requirement: only process messages that contain the MSISDN in the topic
                 Log($"Given MSISDN {msisdn} doesnt match topic {topic}");
-                return $"Given MSISDN {msisdn} doesnt match topic {topic}";
+                return null;
             }
 
             try
             {
                 // Use the in-memory store filled by SmsBroadcastReceiver when messages arrive
                 var latest = SmsStore.GetLatest();
-                if (string.IsNullOrEmpty(latest)) return "No SMS received since App start";
+                if (string.IsNullOrEmpty(latest)) return null;
 
                 // Extract longest sequence of digits allowing spaces between them
                 string resultDigits = await ExtractLongestDigitSequence(latest);
@@ -50,7 +50,7 @@ namespace MqttPhone.Platforms.Android
             }
         }
 
-        private static async Task<string> ExtractLongestDigitSequence(string? input)
+        public static async Task<string> ExtractLongestDigitSequence(string? input)
         {
             if (string.IsNullOrEmpty(input)) return string.Empty;
 
